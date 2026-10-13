@@ -1,0 +1,127 @@
+@startuml 10-mpd
+' Modele physique de donnees (12 tables) - MySQL 8
+hide circle
+skinparam linetype ortho
+
+entity "role" as ROLE {
+  * id_role : BIGINT <<PK>>
+  --
+  code : VARCHAR(50) <<UK>>
+  libelle : VARCHAR(100)
+}
+
+entity "permission" as PERM {
+  * id_permission : BIGINT <<PK>>
+  --
+  code : VARCHAR(50) <<UK>>
+  libelle : VARCHAR(100)
+}
+
+entity "role_permission" as RP {
+  * id_role : BIGINT <<PK,FK>>
+  * id_permission : BIGINT <<PK,FK>>
+}
+
+entity "entite" as ENT {
+  * id_entite : BIGINT <<PK>>
+  --
+  code : VARCHAR(50) <<UK>>
+  nom : VARCHAR(100)
+  actif : BOOLEAN
+}
+
+entity "utilisateur" as USER {
+  * id_user : BIGINT <<PK>>
+  --
+  nom : VARCHAR(100)
+  prenom : VARCHAR(100)
+  email : VARCHAR(255) <<UK>>
+  mot_de_passe : VARCHAR(255)
+  telephone : VARCHAR(20)
+  actif : BOOLEAN
+  id_role : BIGINT <<FK>>
+  id_entite : BIGINT <<FK>>
+}
+
+entity "initiative" as INIT {
+  * id_initiative : BIGINT <<PK>>
+  --
+  code : VARCHAR(50) <<UK>>
+  nom : VARCHAR(200)
+  description : TEXT
+  date_debut : DATE
+  date_fin_prevue : DATE
+  budget : DECIMAL(12,2)
+  avancement : INT
+  archive : BOOLEAN
+  id_entite : BIGINT <<FK>>
+  id_responsable : BIGINT <<FK>>
+  id_statut : BIGINT <<FK>>
+  id_priorite : BIGINT <<FK>>
+}
+
+entity "statut_initiative" as SI {
+  * id_statut : BIGINT <<PK>>
+  --
+  libelle : VARCHAR(50) <<UK>>
+  ordre : INT
+}
+
+entity "priorite" as PRIO {
+  * id_priorite : BIGINT <<PK>>
+  --
+  libelle : VARCHAR(50) <<UK>>
+  ordre : INT
+}
+
+entity "etape" as ETA {
+  * id_etape : BIGINT <<PK>>
+  --
+  nom : VARCHAR(200)
+  description : TEXT
+  ordre : INT
+  date_debut : DATE
+  date_fin_prevue : DATE
+  avancement : INT
+  id_initiative : BIGINT <<FK>>
+  id_statut_etape : BIGINT <<FK>>
+}
+
+entity "statut_etape" as SE {
+  * id_statut_etape : BIGINT <<PK>>
+  --
+  libelle : VARCHAR(50) <<UK>>
+  ordre : INT
+}
+
+entity "jalon" as JAL {
+  * id_jalon : BIGINT <<PK>>
+  --
+  nom : VARCHAR(200)
+  description : TEXT
+  date_prevue : DATE
+  date_realisation : DATE
+  id_initiative : BIGINT <<FK>>
+  id_statut_jalon : BIGINT <<FK>>
+}
+
+entity "statut_jalon" as SJ {
+  * id_statut_jalon : BIGINT <<PK>>
+  --
+  libelle : VARCHAR(50) <<UK>>
+  ordre : INT
+}
+
+ROLE ||--o{ USER
+ROLE ||--o{ RP
+PERM ||--o{ RP
+ENT ||--o{ USER
+ENT ||--o{ INIT
+USER ||--o{ INIT
+SI ||--o{ INIT
+PRIO ||--o{ INIT
+INIT ||--o{ ETA
+INIT ||--o{ JAL
+SE ||--o{ ETA
+SJ ||--o{ JAL
+@enduml

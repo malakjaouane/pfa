@@ -1,0 +1,92 @@
+package ma.it6.portefeuille.security;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+/**
+ * Filtre JWT : lit le jeton « Bearer », le valide <strong>puis recharge
+ * l'utilisateur depuis la base</strong> avant de positionner l'authentification.
+ *
+ * <p>Le jeton ne fait pas foi à lui seul : à chaque requête, le compte doit
+ * toujours exister et être actif, et ce sont les permissions fraîchement
+ * chargées qui sont utilisées (et non celles encodées dans le jeton). Un
+ * compte désactivé ou un rôle modifié a donc effet immédiat, sans attendre
+ * l'expiration du jeton.</p>
+ */
+@Component
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private static final String PREFIXE = "Bearer ";
+
+    private final JwtService jwtService;
+    private final SessionsService sessionsService;
+
+    public JwtAuthenticationFilter(JwtService jwtService, SessionsService sessionsService) {
+        this.jwtService = jwtService;
+        this.sessionsService = sessionsService;
+    }
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
+        String entete = request.getHeader("Authorization");
+
+        if (entete != null && entete.startsWith(PREFIXE)
+                && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+            String token = entete.substring(PREFIXE.length());
+            try {
+                String email = jwtService.extraireEmail(token);
+                if (email != null && jwtService.estValide(token, email)) {
+                    Optional<PrincipalUser> utilisateur = sessionsService.chargerActif(email);
+                    if (utilisateur.isPresent()) {
+                        UsernamePasswordAuthenticationToken authentication =
+                                new UsernamePasswordAuthenticationToken(
+                                        email, null, utilisateur.get().getAuthorities());
+                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                    } else {
+                        // Compte supprimé ou désactivé : on rejette explicitement
+                        // le jeton pour éviter tout traitement ultérieur.
+                        refuser(response, "Session expirée ou compte désactivé.");
+                        return;
+                    }
+                } else {
+                    // Jeton expiré : on renvoie un 401 explicite plutôt que de
+                    // laisser une chaîne de filtres renvoyer une page d'erreur.
+                    refuser(response, "Jeton expiré ou invalide.");
+                    return;
+                }
+            } catch (Exception ignore) {
+                // Jeton malformé ou signature invalide : contexte laissé vide.
+                refuser(response, "Jeton invalide.");
+                return;
+            }
+        }
+
+        filterChain.doFilter(request, response);
+    }
+
+    private static void refuser(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write("{\"timestamp\": \"" + LocalDateTime.now()
+                + "\", \"status\": 401, \"error\": \"Unauthorized\", \"message\": \""
+                + message + "\"}");
+    }
+}

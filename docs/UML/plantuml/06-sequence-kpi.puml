@@ -1,0 +1,27 @@
+@startuml 06-sequence-kpi
+' Calcul des KPI du dashboard, entierement calcule en base
+autonumber
+actor "Utilisateur" as U
+participant "Frontend React" as SPA
+participant "DashboardController" as DC
+participant "DashboardService" as DS
+participant "InitiativeRepository" as IR
+database "MySQL" as DB
+
+U -> SPA : Ouvre le dashboard
+SPA -> DC : GET /api/dashboard (JWT)
+DC -> DS : calculer()
+DS -> IR : countByArchiveFalse()
+DS -> IR : countByArchiveFalseAndStatutLibelle(...)
+DS -> IR : countEnRetard(today)
+DS -> IR : sumBudgetNonArchive()
+DS -> IR : avgAvancementNonArchive()
+DS -> IR : countByStatutNonArchive() / countByPrioriteNonArchive()
+IR -> DB : Requetes d'agregation SQL
+DB --> IR : Resultats
+IR --> DS : Agregats
+DS -> DS : Arrondi avancement / budget
+DS --> DC : DashboardResponse
+DC --> SPA : 200 (KPI + graphes + liste en retard)
+SPA --> U : Cartes KPI + graphiques (Chart.js)
+@enduml

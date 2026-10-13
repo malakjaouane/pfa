@@ -1,0 +1,403 @@
+-- ============================================================
+-- Portefeuille d'initiatives digitales — IT6 Consulting
+-- SCHÉMA PHYSIQUE (MPD) — MySQL 8
+-- Fidèle au cahier des charges (section 9.3 et Annexe A)
+-- ============================================================
+
+-- ------------------------------------------------------------------
+-- RÔLE (la table est nommée « role » ; terme réservé MySQL 8 -> cité)
+-- ------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `role` (
+    id_role   BIGINT       NOT NULL AUTO_INCREMENT,
+    code      VARCHAR(50)  NOT NULL,
+    libelle   VARCHAR(100) NOT NULL,
+    PRIMARY KEY (id_role),
+    CONSTRAINT uk_role_code UNIQUE (code)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------------
+-- PERMISSION
+-- ------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS permission (
+    id_permission BIGINT       NOT NULL AUTO_INCREMENT,
+    code          VARCHAR(50)  NOT NULL,
+    libelle       VARCHAR(100) NOT NULL,
+    PRIMARY KEY (id_permission),
+    CONSTRAINT uk_permission_code UNIQUE (code)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------------
+-- ROLE_PERMISSION  (association N : N entre Rôle et Permission)
+-- ------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS role_permission (
+    id_role       BIGINT NOT NULL,
+    id_permission BIGINT NOT NULL,
+    PRIMARY KEY (id_role, id_permission),
+    CONSTRAINT fk_rp_role       FOREIGN KEY (id_role)       REFERENCES `role` (id_role),
+    CONSTRAINT fk_rp_permission FOREIGN KEY (id_permission) REFERENCES permission (id_permission)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------------
+-- ENTIÉ
+-- ------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS entite (
+    id_entite BIGINT       NOT NULL AUTO_INCREMENT,
+    code      VARCHAR(50)  NOT NULL,
+    nom       VARCHAR(100) NOT NULL,
+    actif     BOOLEAN      NOT NULL DEFAULT TRUE,
+    PRIMARY KEY (id_entite),
+    CONSTRAINT uk_entite_code UNIQUE (code)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------------
+-- UTILISATEUR
+-- ------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS utilisateur (
+    id_user       BIGINT       NOT NULL AUTO_INCREMENT,
+    nom           VARCHAR(100) NOT NULL,
+    prenom        VARCHAR(100) NOT NULL,
+    email         VARCHAR(255) NOT NULL,
+    mot_de_passe  VARCHAR(255) NOT NULL,
+    telephone     VARCHAR(20)  NULL,
+    actif         BOOLEAN      NOT NULL DEFAULT TRUE,
+    id_role       BIGINT       NOT NULL,
+    id_entite     BIGINT       NULL,
+    PRIMARY KEY (id_user),
+    CONSTRAINT uk_utilisateur_email UNIQUE (email),
+    CONSTRAINT fk_utilisateur_role   FOREIGN KEY (id_role)   REFERENCES `role` (id_role),
+    CONSTRAINT fk_utilisateur_entite FOREIGN KEY (id_entite) REFERENCES entite (id_entite)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------------
+-- STATUT_INITIATIVE
+-- ------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS statut_initiative (
+    id_statut BIGINT      NOT NULL AUTO_INCREMENT,
+    libelle   VARCHAR(50) NOT NULL,
+    ordre     INT         NOT NULL,
+    PRIMARY KEY (id_statut),
+    CONSTRAINT uk_statut_initiative_libelle UNIQUE (libelle)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------------
+-- PRIORITE
+-- ------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS priorite (
+    id_priorite BIGINT      NOT NULL AUTO_INCREMENT,
+    libelle     VARCHAR(50) NOT NULL,
+    ordre       INT         NOT NULL,
+    PRIMARY KEY (id_priorite),
+    CONSTRAINT uk_priorite_libelle UNIQUE (libelle)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------------
+-- OBJECTIF STRATÉGIQUE (alignement Jira Align : initiative -> objectif)
+-- ------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS objectif_strategique (
+    id_objectif BIGINT       NOT NULL AUTO_INCREMENT,
+    code        VARCHAR(50)  NOT NULL,
+    libelle     VARCHAR(200) NOT NULL,
+    description TEXT         NULL,
+    PRIMARY KEY (id_objectif),
+    CONSTRAINT uk_objectif_code UNIQUE (code)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------------
+-- INITIATIVE
+-- ------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS initiative (
+    id_initiative   BIGINT         NOT NULL AUTO_INCREMENT,
+    code            VARCHAR(50)    NOT NULL,
+    nom             VARCHAR(200)   NOT NULL,
+    description     TEXT           NULL,
+    date_debut      DATE           NULL,
+    date_fin_prevue DATE           NULL,
+    budget          DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    avancement      INT            NOT NULL DEFAULT 0,
+    archive         BOOLEAN        NOT NULL DEFAULT FALSE,
+    id_entite       BIGINT         NOT NULL,
+    id_responsable  BIGINT         NULL,
+    id_statut       BIGINT         NOT NULL,
+    id_priorite     BIGINT         NOT NULL,
+    id_objectif     BIGINT         NULL,
+    PRIMARY KEY (id_initiative),
+    CONSTRAINT uk_initiative_code UNIQUE (code),
+    CONSTRAINT fk_initiative_entite      FOREIGN KEY (id_entite)      REFERENCES entite (id_entite),
+    CONSTRAINT fk_initiative_responsable FOREIGN KEY (id_responsable) REFERENCES utilisateur (id_user) ON DELETE SET NULL,
+    CONSTRAINT fk_initiative_statut      FOREIGN KEY (id_statut)      REFERENCES statut_initiative (id_statut),
+    CONSTRAINT fk_initiative_priorite    FOREIGN KEY (id_priorite)    REFERENCES priorite (id_priorite),
+    CONSTRAINT fk_initiative_objectif    FOREIGN KEY (id_objectif)    REFERENCES objectif_strategique (id_objectif) ON DELETE SET NULL,
+    -- RM05 : budget >= 0
+    CONSTRAINT chk_initiative_budget CHECK (budget >= 0),
+    -- RM06 : avancement entre 0 et 100
+    CONSTRAINT chk_initiative_avancement CHECK (avancement BETWEEN 0 AND 100),
+    -- RM04 : date de fin prévue >= date de début (si les deux sont renseignées)
+    CONSTRAINT chk_initiative_dates CHECK (date_fin_prevue IS NULL OR date_debut IS NULL OR date_fin_prevue >= date_debut)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- Migration douce d'une base antérieure : MySQL ne connaît pas
+-- « ADD COLUMN IF NOT EXISTS », on protège donc l'ALTER par un contrôle
+-- préalable sur information_schema (idempotent : no-op si la colonne,
+-- puis la clé étrangère, existent déjà).
+SET @col_obj = (SELECT COUNT(*) FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'initiative' AND COLUMN_NAME = 'id_objectif');
+SET @sql_obj = IF(@col_obj = 0,
+        'ALTER TABLE initiative ADD COLUMN id_objectif BIGINT NULL',
+        'SELECT 1');
+PREPARE stmt_obj FROM @sql_obj;
+EXECUTE stmt_obj;
+DEALLOCATE PREPARE stmt_obj;
+
+SET @fk_obj = (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
+        WHERE CONSTRAINT_SCHEMA = DATABASE() AND TABLE_NAME = 'initiative' AND CONSTRAINT_NAME = 'fk_initiative_objectif');
+SET @sql_fk = IF(@fk_obj = 0,
+        'ALTER TABLE initiative ADD CONSTRAINT fk_initiative_objectif FOREIGN KEY (id_objectif) REFERENCES objectif_strategique (id_objectif) ON DELETE SET NULL',
+        'SELECT 1');
+PREPARE stmt_fk FROM @sql_fk;
+EXECUTE stmt_fk;
+DEALLOCATE PREPARE stmt_fk;
+
+-- ------------------------------------------------------------------
+-- STATUT_ETAPE
+-- ------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS statut_etape (
+    id_statut_etape BIGINT      NOT NULL AUTO_INCREMENT,
+    libelle         VARCHAR(50) NOT NULL,
+    ordre           INT         NOT NULL,
+    PRIMARY KEY (id_statut_etape),
+    CONSTRAINT uk_statut_etape_libelle UNIQUE (libelle)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------------
+-- ETAPE
+-- ------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS etape (
+    id_etape         BIGINT       NOT NULL AUTO_INCREMENT,
+    nom              VARCHAR(200) NOT NULL,
+    description      TEXT         NULL,
+    ordre            INT          NOT NULL,
+    date_debut       DATE         NULL,
+    date_fin_prevue  DATE         NULL,
+    avancement       INT          NOT NULL DEFAULT 0,
+    id_initiative    BIGINT       NOT NULL,
+    id_statut_etape  BIGINT       NOT NULL,
+    PRIMARY KEY (id_etape),
+    CONSTRAINT fk_etape_initiative FOREIGN KEY (id_initiative)   REFERENCES initiative (id_initiative) ON DELETE CASCADE,
+    CONSTRAINT fk_etape_statut     FOREIGN KEY (id_statut_etape) REFERENCES statut_etape (id_statut_etape),
+    -- Avancement d'une étape entre 0 et 100
+    CONSTRAINT chk_etape_avancement CHECK (avancement BETWEEN 0 AND 100),
+    CONSTRAINT chk_etape_dates CHECK (date_fin_prevue IS NULL OR date_debut IS NULL OR date_fin_prevue >= date_debut)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------------
+-- STATUT_JALON
+-- ------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS statut_jalon (
+    id_statut_jalon BIGINT      NOT NULL AUTO_INCREMENT,
+    libelle         VARCHAR(50) NOT NULL,
+    ordre           INT         NOT NULL,
+    PRIMARY KEY (id_statut_jalon),
+    CONSTRAINT uk_statut_jalon_libelle UNIQUE (libelle)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------------
+-- JALON
+-- ------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS jalon (
+    id_jalon         BIGINT       NOT NULL AUTO_INCREMENT,
+    nom              VARCHAR(200) NOT NULL,
+    description      TEXT         NULL,
+    date_prevue      DATE         NULL,
+    date_realisation DATE         NULL,
+    id_initiative    BIGINT       NOT NULL,
+    id_statut_jalon  BIGINT       NOT NULL,
+    PRIMARY KEY (id_jalon),
+    CONSTRAINT fk_jalon_initiative FOREIGN KEY (id_initiative)   REFERENCES initiative (id_initiative) ON DELETE CASCADE,
+    CONSTRAINT fk_jalon_statut     FOREIGN KEY (id_statut_jalon) REFERENCES statut_jalon (id_statut_jalon)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------------
+-- STATUT_DEMANDE (workflow ServiceNow SPM :
+-- Brouillon -> Soumise -> En évaluation -> Acceptée / Refusée)
+-- ------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS statut_demande (
+    id_statut_demande BIGINT      NOT NULL AUTO_INCREMENT,
+    libelle           VARCHAR(50) NOT NULL,
+    ordre             INT         NOT NULL,
+    PRIMARY KEY (id_statut_demande),
+    CONSTRAINT uk_statut_demande_libelle UNIQUE (libelle)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------------
+-- DEMANDE_INITIATIVE : demande d'initiative digitale soumise au comité.
+-- La transformation en initiative est enregistrée via id_initiative_liee ;
+-- la contrainte UNIQUE garantit qu'une demande ne peut générer
+-- qu'UNE seule initiative (aucun doublon).
+-- ------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS demande_initiative (
+    id_demande          BIGINT       NOT NULL AUTO_INCREMENT,
+    titre               VARCHAR(200) NOT NULL,
+    description_besoin  TEXT         NULL,
+    justification_metier TEXT        NULL,
+    motif_refus         TEXT         NULL,
+    date_soumission     DATE         NOT NULL,
+    id_entite           BIGINT       NOT NULL,
+    id_demandeur        BIGINT       NOT NULL,
+    id_priorite         BIGINT       NOT NULL,
+    id_statut_demande   BIGINT       NOT NULL,
+    id_initiative_liee  BIGINT       NULL,
+    PRIMARY KEY (id_demande),
+    CONSTRAINT fk_demande_entite     FOREIGN KEY (id_entite)          REFERENCES entite (id_entite),
+    CONSTRAINT fk_demande_demandeur  FOREIGN KEY (id_demandeur)       REFERENCES utilisateur (id_user),
+    CONSTRAINT fk_demande_priorite   FOREIGN KEY (id_priorite)        REFERENCES priorite (id_priorite),
+    CONSTRAINT fk_demande_statut     FOREIGN KEY (id_statut_demande)  REFERENCES statut_demande (id_statut_demande),
+    CONSTRAINT fk_demande_initiative FOREIGN KEY (id_initiative_liee) REFERENCES initiative (id_initiative) ON DELETE SET NULL,
+    CONSTRAINT uq_demande_initiative UNIQUE (id_initiative_liee)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------------
+-- HISTORIQUE DES STATUTS : journal chronologique des transitions de
+-- cycle de vie d'une initiative (RM10 : un comblement du planning
+-- interdit toute modification). Permet d'afficher « qui, quand, et
+-- pourquoi » sur la fiche détaillée.
+--
+-- Les libellés sont stockés en clair et non par clé étrangère : le
+-- journal doit survivre à une modification du référentiel de statuts.
+-- ------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS historique_statut (
+    id_historique   BIGINT        NOT NULL AUTO_INCREMENT,
+    id_initiative   BIGINT        NOT NULL,
+    ancien_statut   VARCHAR(50)   NULL,
+    nouveau_statut  VARCHAR(50)   NOT NULL,
+    commentaire     VARCHAR(500)  NULL,
+    date_changement DATETIME      NOT NULL,
+    id_utilisateur  BIGINT        NULL,
+    PRIMARY KEY (id_historique),
+    CONSTRAINT fk_historique_initiative  FOREIGN KEY (id_initiative)  REFERENCES initiative (id_initiative) ON DELETE CASCADE,
+    CONSTRAINT fk_historique_utilisateur FOREIGN KEY (id_utilisateur) REFERENCES utilisateur (id_user) ON DELETE SET NULL
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- L'ordre chronologique est ce qui est affiché : l'index accélère la lecture
+-- du journal d'une initiative.
+-- MySQL 8.0 n'accepte pas « CREATE INDEX IF NOT EXISTS » (c'est une
+-- extension MariaDB) : on garde donc l'index avec le même garde-fou
+-- information_schema que les migrations de colonnes, plus bas.
+SET @col = (SELECT COUNT(*) FROM information_schema.STATISTICS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'historique_statut'
+        AND INDEX_NAME = 'idx_historique_statut_initiative');
+SET @sql_index = IF(@col = 0,
+        'CREATE INDEX idx_historique_statut_initiative ON historique_statut (id_initiative, date_changement)',
+        'SELECT 1');
+PREPARE stmt_index FROM @sql_index;
+EXECUTE stmt_index;
+DEALLOCATE PREPARE stmt_index;
+
+-- ==================================================================
+-- MIGRATIONS DOUCES
+-- MySQL ne connaît pas « ADD COLUMN IF NOT EXISTS » : chaque ALTER est
+-- donc protégé par un contrôle sur information_schema, exactement comme
+-- pour initiative.id_objectif ci-dessus. Le résultat est idempotent —
+-- ces blocs sont des no-op sur une base déjà à jour.
+--
+-- Colonnes d'audit de la table concernée :
+--   created_at : date de création (jamais mise à jour)
+--   updated_at : date de dernière modification
+--   version    : verrou optimiste (@Version JPA) — deux utilisateurs
+--                modifiant la même ligne ne se marchent pas dessus :
+--                le second reçoit un HTTP 409.
+--
+-- created_at / updated_at restent NULLables : ces colonnes sont ajoutées
+-- rétroactivement, on refuse donc d'inventer une date de création pour
+-- les enregistrements préexistants. version vaut 0 par défaut.
+-- ==================================================================
+
+-- Table : role (nom réservé MySQL 8 : les backticks ne servent que dans le DDL,
+-- jamais dans le comparatif information_schema, où le nom est déja échappé).
+SET @col = (SELECT COUNT(*) FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'role' AND COLUMN_NAME = 'created_at');
+SET @sql_audit = IF(@col = 0,
+        'ALTER TABLE `role` ADD COLUMN created_at DATETIME NULL, ADD COLUMN updated_at DATETIME NULL, ADD COLUMN version BIGINT NOT NULL DEFAULT 0',
+        'SELECT 1');
+PREPARE stmt_audit FROM @sql_audit;
+EXECUTE stmt_audit;
+DEALLOCATE PREPARE stmt_audit;
+
+-- Table : permission
+SET @col = (SELECT COUNT(*) FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'permission' AND COLUMN_NAME = 'created_at');
+SET @sql_audit = IF(@col = 0,
+        'ALTER TABLE permission ADD COLUMN created_at DATETIME NULL, ADD COLUMN updated_at DATETIME NULL, ADD COLUMN version BIGINT NOT NULL DEFAULT 0',
+        'SELECT 1');
+PREPARE stmt_audit FROM @sql_audit;
+EXECUTE stmt_audit;
+DEALLOCATE PREPARE stmt_audit;
+
+-- Table : entite
+SET @col = (SELECT COUNT(*) FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'entite' AND COLUMN_NAME = 'created_at');
+SET @sql_audit = IF(@col = 0,
+        'ALTER TABLE entite ADD COLUMN created_at DATETIME NULL, ADD COLUMN updated_at DATETIME NULL, ADD COLUMN version BIGINT NOT NULL DEFAULT 0',
+        'SELECT 1');
+PREPARE stmt_audit FROM @sql_audit;
+EXECUTE stmt_audit;
+DEALLOCATE PREPARE stmt_audit;
+
+-- Table : utilisateur
+SET @col = (SELECT COUNT(*) FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'utilisateur' AND COLUMN_NAME = 'created_at');
+SET @sql_audit = IF(@col = 0,
+        'ALTER TABLE utilisateur ADD COLUMN created_at DATETIME NULL, ADD COLUMN updated_at DATETIME NULL, ADD COLUMN version BIGINT NOT NULL DEFAULT 0',
+        'SELECT 1');
+PREPARE stmt_audit FROM @sql_audit;
+EXECUTE stmt_audit;
+DEALLOCATE PREPARE stmt_audit;
+
+-- Table : objectif_strategique
+SET @col = (SELECT COUNT(*) FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'objectif_strategique' AND COLUMN_NAME = 'created_at');
+SET @sql_audit = IF(@col = 0,
+        'ALTER TABLE objectif_strategique ADD COLUMN created_at DATETIME NULL, ADD COLUMN updated_at DATETIME NULL, ADD COLUMN version BIGINT NOT NULL DEFAULT 0',
+        'SELECT 1');
+PREPARE stmt_audit FROM @sql_audit;
+EXECUTE stmt_audit;
+DEALLOCATE PREPARE stmt_audit;
+
+-- Table : initiative
+SET @col = (SELECT COUNT(*) FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'initiative' AND COLUMN_NAME = 'created_at');
+SET @sql_audit = IF(@col = 0,
+        'ALTER TABLE initiative ADD COLUMN created_at DATETIME NULL, ADD COLUMN updated_at DATETIME NULL, ADD COLUMN version BIGINT NOT NULL DEFAULT 0',
+        'SELECT 1');
+PREPARE stmt_audit FROM @sql_audit;
+EXECUTE stmt_audit;
+DEALLOCATE PREPARE stmt_audit;
+
+-- Table : etape
+SET @col = (SELECT COUNT(*) FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'etape' AND COLUMN_NAME = 'created_at');
+SET @sql_audit = IF(@col = 0,
+        'ALTER TABLE etape ADD COLUMN created_at DATETIME NULL, ADD COLUMN updated_at DATETIME NULL, ADD COLUMN version BIGINT NOT NULL DEFAULT 0',
+        'SELECT 1');
+PREPARE stmt_audit FROM @sql_audit;
+EXECUTE stmt_audit;
+DEALLOCATE PREPARE stmt_audit;
+
+-- Table : jalon
+SET @col = (SELECT COUNT(*) FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'jalon' AND COLUMN_NAME = 'created_at');
+SET @sql_audit = IF(@col = 0,
+        'ALTER TABLE jalon ADD COLUMN created_at DATETIME NULL, ADD COLUMN updated_at DATETIME NULL, ADD COLUMN version BIGINT NOT NULL DEFAULT 0',
+        'SELECT 1');
+PREPARE stmt_audit FROM @sql_audit;
+EXECUTE stmt_audit;
+DEALLOCATE PREPARE stmt_audit;
+
+-- Table : demande_initiative
+SET @col = (SELECT COUNT(*) FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'demande_initiative' AND COLUMN_NAME = 'created_at');
+SET @sql_audit = IF(@col = 0,
+        'ALTER TABLE demande_initiative ADD COLUMN created_at DATETIME NULL, ADD COLUMN updated_at DATETIME NULL, ADD COLUMN version BIGINT NOT NULL DEFAULT 0',
+        'SELECT 1');
+PREPARE stmt_audit FROM @sql_audit;
+EXECUTE stmt_audit;
+DEALLOCATE PREPARE stmt_audit;

@@ -1,0 +1,18 @@
+@startuml 03-etats-initiative
+' Cycle de vie d'une initiative (InitiativeService.verifierTransition, RM07, RM14)
+hide empty description
+
+[*] --> "A planifier" : Creer
+[*] --> "Terminee" : Creer (avancement = 100 %)
+
+"A planifier" --> "En cours" : Demarrer
+"A planifier" --> "Annulee" : Annuler
+"En cours" --> "En pause" : Mettre en pause
+"En pause" --> "En cours" : Reprendre
+"En cours" --> "Terminee" : Avancement = 100 % (RM07)
+"En cours" --> "Annulee" : Annuler
+"En pause" --> "Annulee" : Annuler
+
+"Terminee" --> [*] : Archiver (RM14)
+"Annulee" --> [*] : Archiver (RM14)
+@enduml

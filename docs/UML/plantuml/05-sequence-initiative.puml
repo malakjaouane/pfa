@@ -1,0 +1,47 @@
+@startuml 05-sequence-initiative
+' Creation puis evolution du statut d'une initiative (InitiativeService)
+autonumber
+actor "Responsable" as R
+participant "Frontend React" as SPA
+participant "InitiativeController" as IC
+participant "InitiativeService" as IS
+database "MySQL" as DB
+
+R -> SPA : Remplit le formulaire de creation
+SPA -> IC : POST /api/initiatives (JWT)
+IC -> IS : creer(request)
+IS -> DB : existsByCode(code) - RM11
+
+alt Code deja utilise
+  IS --> IC : BadRequestException
+  IC --> SPA : 400 (RM11)
+else Regles RM01/RM04/RM05/RM06 valides
+  IS -> IS : statut = (avancement == 100) ? Terminee : A planifier
+  IS -> DB : INSERT initiative
+  IS --> IC : InitiativeResponse
+  IC --> SPA : 201 Created
+end
+
+R -> SPA : Modifie l'avancement / le statut
+SPA -> IC : PUT /api/initiatives/{id}
+IC -> IS : modifier(id, request)
+IS -> IS : verifierTransition(actuel, demande)
+
+alt Transition interdite
+  IS --> IC : BadRequestException
+  IC --> SPA : 400 (cycle de vie)
+else Transition autorisee
+  IS -> IS : si avancement == 100 -> statut Terminee (RM07)
+  IS -> DB : UPDATE initiative
+  IS --> IC : InitiativeResponse
+  IC --> SPA : 200 OK
+end
+
+R -> SPA : Archive l'initiative
+SPA -> IC : PATCH /api/initiatives/{id}/archive
+IC -> IS : archiver(id)
+IS -> IS : statut Terminee ou Annulee ? (RM14)
+IS -> DB : UPDATE archive = true
+IS --> IC : InitiativeResponse
+IC --> SPA : 200 OK
+@enduml

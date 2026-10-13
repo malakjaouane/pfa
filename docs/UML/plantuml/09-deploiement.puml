@@ -1,0 +1,22 @@
+@startuml 09-deploiement
+' Diagramme de deploiement
+skinparam nodeSep 40
+
+node "Machine de developpement" {
+
+  node "Navigateur" {
+    artifact "Application React\nhttp://localhost:5173" as APP
+  }
+
+  node "JVM 17" {
+    artifact "portefeuille-backend.jar\nSpring Boot / Tomcat\nhttp://localhost:8080" as API
+  }
+
+  database "MySQL 8.4" {
+    artifact "Base portefeuille_initiatives\nlocalhost:3306" as DB
+  }
+}
+
+APP --> API : REST /api/**\n(JSON, JWT Bearer)
+API --> DB : JDBC :3306
+@enduml

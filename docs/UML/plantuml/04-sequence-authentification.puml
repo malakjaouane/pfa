@@ -1,0 +1,31 @@
+@startuml 04-sequence-authentification
+' Authentification JWT (AuthController, JwtService, CustomUserDetailsService)
+autonumber
+actor "Utilisateur" as U
+participant "Frontend React" as SPA
+participant "AuthController" as AC
+participant "AuthenticationManager" as AM
+participant "CustomUserDetailsService" as CU
+database "MySQL" as DB
+participant "JwtService" as JWT
+
+U -> SPA : Saisit email + mot de passe
+SPA -> AC : POST /api/auth/login
+AC -> AM : authenticate(email, motDePasse)
+AM -> CU : loadUserByUsername(email)
+CU -> DB : SELECT utilisateur + role + permissions
+DB --> CU : Utilisateur (mot de passe Bcrypt)
+CU --> AM : PrincipalUser (authorities)
+AM -> AM : Verification BCrypt
+
+alt Identifiants valides
+  AM --> AC : Authentication
+  AC -> JWT : generer(principal)
+  JWT --> AC : Jeton JWT (HS256, 8 h)
+  AC --> SPA : 200 LoginResponse (token + permissions)
+  SPA --> U : Redirection vers le dashboard
+else Identifiants invalides
+  AM --> AC : BadCredentialsException
+  AC --> SPA : 401 { message }
+end
+@enduml

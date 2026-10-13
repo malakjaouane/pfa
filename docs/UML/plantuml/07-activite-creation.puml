@@ -1,0 +1,33 @@
+@startuml 07-activite-creation
+' Creation d'une initiative : application des regles metier
+start
+:Saisie du formulaire;
+if (Nom renseigne ? - RM01) then (non)
+  :400 : nom obligatoire;
+  stop
+endif
+if (Code unique ? - RM11) then (non)
+  :400 : code deja utilise;
+  stop
+endif
+if (dateFin >= dateDebut ? - RM04) then (non)
+  :400 : dates incoherentes;
+  stop
+endif
+if (budget >= 0 ? - RM05) then (non)
+  :400 : budget negatif;
+  stop
+endif
+if (0 <= avancement <= 100 ? - RM06) then (non)
+  :400 : avancement invalide;
+  stop
+endif
+if (avancement = 100 ? - RM07) then (oui)
+  :Statut = Terminee;
+else (non)
+  :Statut = A planifier;
+endif
+:INSERT initiative;
+:201 Created;
+stop
+@enduml

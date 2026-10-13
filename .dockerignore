@@ -1,0 +1,26 @@
+# ==================================================================
+# Exclusions du contexte de build Docker.
+# On ne veut surtout pas transférer les données MySQL locales ni les
+# dépendances : elles alourdiraient inutilement chaque build.
+# ==================================================================
+.mysql/
+tools/
+docs/
+.github/
+.vscode/
+
+backend/target/
+backend/.mvn/
+
+frontend/node_modules/
+frontend/dist/
+
+**/node_modules/
+**/target/
+**/*.log
+**/.DS_Store
+
+# Secrets locaux : jamais dans une image.
+.env
+.env.*
+!.env.example

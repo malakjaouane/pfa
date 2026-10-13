@@ -1,0 +1,265 @@
+{
+	"info": {
+		"_postman_id": "portefeuille-initiatives-it6",
+		"name": "Portefeuille d'initiatives digitales - IT6",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"description": "Collection Postman pour l'API REST (Spring Boot 3, JWT, RBAC). Base URL : http://localhost:8080/api"
+	},
+	"variable": [
+		{ "key": "baseUrl", "value": "http://localhost:8080/api" },
+		{ "key": "token", "value": "" },
+		{ "key": "idInitiative", "value": "1" },
+		{ "key": "idEtape", "value": "1" },
+		{ "key": "idJalon", "value": "1" },
+		{ "key": "idUser", "value": "1" },
+		{ "key": "idRole", "value": "1" }
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{ "key": "token", "value": "{{token}}", "type": "string" }
+		]
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login (admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var json = pm.response.json();",
+									"if (json.token) pm.environment.set('token', json.token); pm.collectionVariables.set('token', json.token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@it6.ma\",\n  \"motDePasse\": \"Admin@123\"\n}"
+						},
+						"url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth","login"] }
+					},
+					"response": []
+				},
+				{
+					"name": "Login (responsable)",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": { "mode": "raw", "raw": "{\n  \"email\": \"responsable@it6.ma\",\n  \"motDePasse\": \"Resp@123\"\n}" },
+						"url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth","login"] }
+					},
+					"response": []
+				},
+				{
+					"name": "Login (visiteur)",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": { "mode": "raw", "raw": "{\n  \"email\": \"visiteur@it6.ma\",\n  \"motDePasse\": \"Visi@123\"\n}" },
+						"url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth","login"] }
+					},
+					"response": []
+				},
+				{
+					"name": "Me",
+					"request": {
+						"auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+						"method": "GET",
+						"url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth","me"] }
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Referentiels",
+			"item": [
+				{ "name": "Statuts initiative", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/referentiels/statuts-initiative", "host": ["{{baseUrl}}"], "path": ["referentiels","statuts-initiative"] } } },
+				{ "name": "Priorités", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/referentiels/priorites", "host": ["{{baseUrl}}"], "path": ["referentiels","priorites"] } } },
+				{ "name": "Entités", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/referentiels/entites", "host": ["{{baseUrl}}"], "path": ["referentiels","entites"] } } },
+				{ "name": "Responsables", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/referentiels/responsables", "host": ["{{baseUrl}}"], "path": ["referentiels","responsables"] } } },
+				{ "name": "Statuts étape", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/referentiels/statuts-etape", "host": ["{{baseUrl}}"], "path": ["referentiels","statuts-etape"] } } },
+				{ "name": "Statuts jalon", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/referentiels/statuts-jalon", "host": ["{{baseUrl}}"], "path": ["referentiels","statuts-jalon"] } } }
+			]
+		},
+		{
+			"name": "Dashboard",
+			"item": [
+				{ "name": "KPI + graphiques", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/dashboard", "host": ["{{baseUrl}}"], "path": ["dashboard"] } } }
+			]
+		},
+		{
+			"name": "Initiatives",
+			"item": [
+				{
+					"name": "Lister initiatives (filtres combinés)",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/initiatives?recherche=MOB&statut=3&entite=2&priorite=4&archive=false",
+							"host": ["{{baseUrl}}"],
+							"path": ["initiatives"],
+							"query": [
+								{ "key": "recherche", "value": "MOB" },
+								{ "key": "statut", "value": "3" },
+								{ "key": "entite", "value": "2" },
+								{ "key": "responsable", "value": "" },
+								{ "key": "priorite", "value": "4" },
+								{ "key": "dateDebutMin", "value": "" },
+								{ "key": "dateDebutMax", "value": "" },
+								{ "key": "dateFinMin", "value": "" },
+								{ "key": "dateFinMax", "value": "" },
+								{ "key": "archive", "value": "false" }
+							]
+						}
+					}
+				},
+				{
+					"name": "Créer initiative",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": ["var json = pm.response.json(); if (json.idInitiative) pm.collectionVariables.set('idInitiative', json.idInitiative);"],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": { "mode": "raw", "raw": "{\n  \"code\": \"POST-001\",\n  \"nom\": \"Nouvelle initiative\",\n  \"description\": \"Test API\",\n  \"dateDebut\": \"2026-09-01\",\n  \"dateFinPrevue\": \"2026-12-31\",\n  \"budget\": 150000,\n  \"avancement\": 0,\n  \"idEntite\": 1,\n  \"idResponsable\": 2,\n  \"idStatut\": 1,\n  \"idPriorite\": 2\n}" },
+						"url": { "raw": "{{baseUrl}}/initiatives", "host": ["{{baseUrl}}"], "path": ["initiatives"] }
+					}
+				},
+				{ "name": "Détail initiative", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/initiatives/{{idInitiative}}", "host": ["{{baseUrl}}"], "path": ["initiatives","{{idInitiative}}"] } } },
+				{
+					"name": "Modifier initiative",
+					"request": {
+						"method": "PUT",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": { "mode": "raw", "raw": "{\n  \"code\": \"POST-001\",\n  \"nom\": \"Nouvelle initiative (v2)\",\n  \"description\": \"Mise à jour\",\n  \"dateDebut\": \"2026-09-01\",\n  \"dateFinPrevue\": \"2026-12-31\",\n  \"budget\": 160000,\n  \"avancement\": 25,\n  \"idEntite\": 1,\n  \"idResponsable\": 2,\n  \"idStatut\": 2,\n  \"idPriorite\": 2\n}" },
+						"url": { "raw": "{{baseUrl}}/initiatives/{{idInitiative}}", "host": ["{{baseUrl}}"], "path": ["initiatives","{{idInitiative}}"] }
+					}
+				},
+				{ "name": "Archiver initiative", "request": { "method": "PATCH", "url": { "raw": "{{baseUrl}}/initiatives/{{idInitiative}}/archive", "host": ["{{baseUrl}}"], "path": ["initiatives","{{idInitiative}}","archive"] } } }
+			]
+		},
+		{
+			"name": "Étapes",
+			"item": [
+				{ "name": "Lister étapes", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/initiatives/{{idInitiative}}/etapes", "host": ["{{baseUrl}}"], "path": ["initiatives","{{idInitiative}}","etapes"] } } },
+				{
+					"name": "Créer étape",
+					"event": [
+						{
+							"listen": "test",
+							"script": { "exec": ["var json = pm.response.json(); if (json.idEtape) pm.collectionVariables.set('idEtape', json.idEtape);"], "type": "text/javascript" }
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": { "mode": "raw", "raw": "{\n  \"nom\": \"Analyse\",\n  \"description\": \"Cadrage\",\n  \"ordre\": 1,\n  \"dateDebut\": \"2026-09-15\",\n  \"dateFinPrevue\": \"2026-10-15\",\n  \"avancement\": 0,\n  \"idStatutEtape\": 1\n}" },
+						"url": { "raw": "{{baseUrl}}/initiatives/{{idInitiative}}/etapes", "host": ["{{baseUrl}}"], "path": ["initiatives","{{idInitiative}}","etapes"] }
+					}
+				},
+				{
+					"name": "Modifier étape",
+					"request": {
+						"method": "PUT",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": { "mode": "raw", "raw": "{\n  \"nom\": \"Analyse détaillée\",\n  \"description\": \"Cadrage validé\",\n  \"ordre\": 1,\n  \"dateDebut\": \"2026-09-15\",\n  \"dateFinPrevue\": \"2026-10-20\",\n  \"avancement\": 40,\n  \"idStatutEtape\": 2\n}" },
+						"url": { "raw": "{{baseUrl}}/etapes/{{idEtape}}", "host": ["{{baseUrl}}"], "path": ["etapes","{{idEtape}}"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "Jalons",
+			"item": [
+				{ "name": "Lister jalons", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/initiatives/{{idInitiative}}/jalons", "host": ["{{baseUrl}}"], "path": ["initiatives","{{idInitiative}}","jalons"] } } },
+				{
+					"name": "Créer jalon",
+					"event": [
+						{
+							"listen": "test",
+							"script": { "exec": ["var json = pm.response.json(); if (json.idJalon) pm.collectionVariables.set('idJalon', json.idJalon);"], "type": "text/javascript" }
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": { "mode": "raw", "raw": "{\n  \"nom\": \"Recette\",\n  \"description\": \"Validation fonctionnelle\",\n  \"datePrevue\": \"2026-11-30\",\n  \"dateRealisation\": null,\n  \"idStatutJalon\": 1\n}" },
+						"url": { "raw": "{{baseUrl}}/initiatives/{{idInitiative}}/jalons", "host": ["{{baseUrl}}"], "path": ["initiatives","{{idInitiative}}","jalons"] }
+					}
+				},
+				{
+					"name": "Modifier jalon",
+					"request": {
+						"method": "PUT",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": { "mode": "raw", "raw": "{\n  \"nom\": \"Recette finale\",\n  \"description\": \"Validation finale\",\n  \"datePrevue\": \"2026-11-30\",\n  \"dateRealisation\": null,\n  \"idStatutJalon\": 2\n}" },
+						"url": { "raw": "{{baseUrl}}/jalons/{{idJalon}}", "host": ["{{baseUrl}}"], "path": ["jalons","{{idJalon}}"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "Utilisateurs",
+			"item": [
+				{ "name": "Lister utilisateurs", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] } } },
+				{
+					"name": "Créer utilisateur",
+					"event": [
+						{
+							"listen": "test",
+							"script": { "exec": ["var json = pm.response.json(); if (json.idUser) pm.collectionVariables.set('idUser', json.idUser);"], "type": "text/javascript" }
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": { "mode": "raw", "raw": "{\n  \"nom\": \"Dupont\",\n  \"prenom\": \"Jean\",\n  \"email\": \"jean.dupont@it6.ma\",\n  \"motDePasse\": \"Pass@123\",\n  \"telephone\": \"0600000001\",\n  \"actif\": true,\n  \"idRole\": 2,\n  \"idEntite\": 1\n}" },
+						"url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] }
+					}
+				},
+				{
+					"name": "Modifier utilisateur",
+					"request": {
+						"method": "PUT",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": { "mode": "raw", "raw": "{\n  \"nom\": \"Dupont\",\n  \"prenom\": \"Jean\",\n  \"email\": \"jean.dupont@it6.ma\",\n  \"motDePasse\": \"\",\n  \"telephone\": \"0600000001\",\n  \"actif\": true,\n  \"idRole\": 2,\n  \"idEntite\": 1\n}" },
+						"url": { "raw": "{{baseUrl}}/users/{{idUser}}", "host": ["{{baseUrl}}"], "path": ["users","{{idUser}}"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "Rôles & Permissions",
+			"item": [
+				{ "name": "Lister rôles", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/roles", "host": ["{{baseUrl}}"], "path": ["roles"] } } },
+				{ "name": "Détail rôle", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/roles/{{idRole}}", "host": ["{{baseUrl}}"], "path": ["roles","{{idRole}}"] } } },
+				{ "name": "Lister permissions", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/permissions", "host": ["{{baseUrl}}"], "path": ["permissions"] } } },
+				{
+					"name": "Mettre à jour permissions d'un rôle",
+					"request": {
+						"method": "PUT",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": { "mode": "raw", "raw": "{\n  \"idsPermissions\": [1,9,10]\n}" },
+						"url": { "raw": "{{baseUrl}}/roles/{{idRole}}/permissions", "host": ["{{baseUrl}}"], "path": ["roles","{{idRole}}","permissions"] }
+					}
+				}
+			]
+		}
+	]
+}

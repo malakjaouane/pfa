@@ -1,0 +1,105 @@
+@startuml 02-classes
+' Diagramme de classes du domaine (entites JPA)
+skinparam classAttributeIconSize 0
+
+class Utilisateur {
+  +Long idUser
+  +String nom
+  +String prenom
+  +String email
+  +String motDePasse
+  +String telephone
+  +Boolean actif
+}
+
+class Role {
+  +Long idRole
+  +String code
+  +String libelle
+}
+
+class Permission {
+  +Long idPermission
+  +String code
+  +String libelle
+}
+
+class RolePermission {
+  +Long idRole
+  +Long idPermission
+}
+
+class Entite {
+  +Long idEntite
+  +String code
+  +String nom
+  +Boolean actif
+}
+
+class Initiative {
+  +Long idInitiative
+  +String code
+  +String nom
+  +String description
+  +LocalDate dateDebut
+  +LocalDate dateFinPrevue
+  +BigDecimal budget
+  +Integer avancement
+  +Boolean archive
+}
+
+class Etape {
+  +Long idEtape
+  +String nom
+  +String description
+  +Integer ordre
+  +LocalDate dateDebut
+  +LocalDate dateFinPrevue
+  +Integer avancement
+}
+
+class Jalon {
+  +Long idJalon
+  +String nom
+  +String description
+  +LocalDate datePrevue
+  +LocalDate dateRealisation
+}
+
+class StatutInitiative {
+  +Long idStatut
+  +String libelle
+  +Integer ordre
+}
+
+class Priorite {
+  +Long idPriorite
+  +String libelle
+  +Integer ordre
+}
+
+class StatutEtape {
+  +Long idStatutEtape
+  +String libelle
+  +Integer ordre
+}
+
+class StatutJalon {
+  +Long idStatutJalon
+  +String libelle
+  +Integer ordre
+}
+
+Role "1" --> "*" Utilisateur : attribue a
+Role "1" --> "*" RolePermission : possede
+Permission "1" --> "*" RolePermission : accordee a
+Entite "1" --> "*" Utilisateur : rattache
+Entite "1" --> "*" Initiative : porte
+Utilisateur "1" --> "*" Initiative : est responsable de
+StatutInitiative "1" --> "*" Initiative : etat de
+Priorite "1" --> "*" Initiative : niveau de
+Initiative "1" --> "*" Etape : composee de
+Initiative "1" --> "*" Jalon : jalonnee par
+StatutEtape "1" --> "*" Etape : etat de
+StatutJalon "1" --> "*" Jalon : etat de
+@enduml

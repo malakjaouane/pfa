@@ -1,0 +1,75 @@
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import api, { EVT_SESSION_EXPIREE } from './api';
+
+const AuthContext = createContext(null);
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Restaure la session au chargement de l'application.
+  useEffect(() => {
+    const token = localStorage.getItem('pfa_token');
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+    api
+      .get('/auth/me')
+      .then((res) => {
+        setUser(res.data);
+        localStorage.setItem('pfa_user', JSON.stringify(res.data));
+      })
+      .catch(() => {
+        localStorage.removeItem('pfa_token');
+        localStorage.removeItem('pfa_user');
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  // L'API a répondu 401 (jeton expiré, compte désactivé, permissions
+  // révoquées…) : sans cela, l'application restait affichée comme connectée
+  // alors que plus aucune requête ne passait.
+  useEffect(() => {
+    const deconnecter = () => setUser(null);
+    window.addEventListener(EVT_SESSION_EXPIREE, deconnecter);
+    return () => window.removeEventListener(EVT_SESSION_EXPIREE, deconnecter);
+  }, []);
+
+  const login = useCallback(async (email, motDePasse) => {
+    const res = await api.post('/auth/login', { email, motDePasse });
+    const data = res.data;
+    localStorage.setItem('pfa_token', data.token);
+    localStorage.setItem('pfa_user', JSON.stringify(data));
+    setUser(data);
+    return data;
+  }, []);
+
+  const logout = useCallback(() => {
+    localStorage.removeItem('pfa_token');
+    localStorage.removeItem('pfa_user');
+    setUser(null);
+  }, []);
+
+  /** Fonction courte : l'utilisateur possède-t-il telle permission ? */
+  const hasPermission = useCallback(
+    (permission) => Boolean(user?.permissions?.includes(permission)),
+    [user]
+  );
+
+  /** L'utilisateur possède-t-il tel rôle ? */
+  const hasRole = useCallback(
+    (code) => user?.role?.code === code,
+    [user]
+  );
+
+  return (
+    <AuthContext.Provider value={{ user, loading, login, logout, hasPermission, hasRole }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  return useContext(AuthContext);
+}

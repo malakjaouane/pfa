@@ -1,0 +1,44 @@
+@startuml 01-cas-utilisation
+' Portefeuille d'initiatives digitales - IT6 Consulting
+' Diagramme de cas d'utilisation (reconstruit depuis SecurityConfig + permissions)
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+
+actor "Visiteur" as VIS
+actor "Responsable" as RESP
+actor "Administrateur" as ADMIN
+
+VIS <|-- RESP
+RESP <|-- ADMIN
+
+rectangle "Portefeuille d'initiatives digitales" {
+  usecase "S'authentifier" as UC_AUTH
+  usecase "Consulter les initiatives\n(recherche & filtres)" as UC_CONSULT
+  usecase "Consulter une initiative,\nses etapes et ses jalons" as UC_DETAIL
+  usecase "Consulter le dashboard\net les KPI" as UC_DASH
+  usecase "Creer une initiative" as UC_CREER
+  usecase "Modifier une initiative\n(avancement, affectation)" as UC_MODIF
+  usecase "Faire evoluer le statut\n(cycle de vie)" as UC_STATUT
+  usecase "Archiver une initiative" as UC_ARCH
+  usecase "Gerer les etapes" as UC_ETAPE
+  usecase "Gerer les jalons" as UC_JALON
+  usecase "Gerer les utilisateurs" as UC_USERS
+  usecase "Gerer les roles\net permissions" as UC_ROLES
+}
+
+VIS --> UC_AUTH
+VIS --> UC_CONSULT
+VIS --> UC_DETAIL
+VIS --> UC_DASH
+
+RESP --> UC_CREER
+RESP --> UC_MODIF
+RESP --> UC_STATUT
+RESP --> UC_ARCH
+RESP --> UC_ETAPE
+RESP --> UC_JALON
+
+ADMIN --> UC_USERS
+ADMIN --> UC_ROLES
+@enduml

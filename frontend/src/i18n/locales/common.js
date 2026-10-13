@@ -1,0 +1,237 @@
+/**
+ * Vocabulaire partagé par toute l'application :
+ * statuts, priorités, rôles, permissions, termes génériques.
+ */
+export default {
+  fr: {
+    'common.statut.aPlanifier': 'À planifier',
+    'common.statut.enCours': 'En cours',
+    'common.statut.enPause': 'En pause',
+    'common.statut.terminee': 'Terminée',
+    'common.statut.annulee': 'Annulée',
+
+    'common.priorite.basse': 'Basse',
+    'common.priorite.moyenne': 'Moyenne',
+    'common.priorite.haute': 'Haute',
+    'common.priorite.critique': 'Critique',
+
+    'common.statutEtape.aFaire': 'À faire',
+    'common.statutEtape.enCours': 'En cours',
+    'common.statutEtape.terminee': 'Terminée',
+
+    'common.statutJalon.aAtteindre': 'À atteindre',
+    'common.statutJalon.atteint': 'Atteint',
+
+    'common.role.ADMIN': 'Administrateur',
+    'common.role.RESPONSABLE': 'Responsable',
+    'common.role.VISITEUR': 'Visiteur',
+
+    'common.permission.INITIATIVE_CONSULTER': 'Consulter les initiatives',
+    'common.permission.INITIATIVE_CREER': 'Créer une initiative',
+    'common.permission.INITIATIVE_MODIFIER': 'Modifier une initiative',
+    'common.permission.INITIATIVE_ARCHIVER': 'Archiver une initiative',
+    'common.permission.RESPONSABLE_AFFECTER': 'Affecter un responsable à une initiative',
+    'common.permission.AVANCEMENT_MODIFIER': "Mettre à jour l'avancement",
+    'common.permission.ETAPE_GERER': "Gérer les étapes d'une initiative",
+    'common.permission.JALON_GERER': "Gérer les jalons d'une initiative",
+    'common.permission.DASHBOARD_CONSULTER': 'Consulter le dashboard et les KPI',
+    'common.permission.FILTRE_UTILISER': 'Utiliser la recherche et les filtres',
+    'common.permission.UTILISATEUR_GERER': 'Gérer les utilisateurs',
+    'common.permission.ROLE_GERER': 'Gérer les rôles',
+    'common.permission.PERMISSION_GERER': 'Gérer les permissions',
+    'common.permission.DEMANDE_SOUMETTRE': "Soumettre une demande d'initiative",
+    'common.permission.DEMANDE_EVALUER': 'Évaluer, accepter ou refuser une demande',
+    'common.permission.BUDGET_CONSULTER': 'Consulter les budgets et les écarts',
+
+    'common.chargement': 'Chargement…',
+    'common.nonAffecte': 'Non affecté',
+    'common.nonRenseigne': 'Non renseigné',
+    'common.aucuneDonnee': 'Aucune donnée.',
+    'common.erreurInattendue': 'Erreur inattendue.',
+    'common.langue.changer': 'Changer de langue',
+    'common.langue.liste': 'Langues',
+    'common.langue.courante': 'Langue : {langue}',
+
+    'common.kanban.aucunResultat': 'Aucune initiative ne correspond aux critères.',
+    'common.kanban.enRetard': 'Potentiellement en retard',
+    'common.kanban.ouvert': 'Ouvert : {description}',
+    'common.kanban.voirFiche': 'Voir la fiche',
+    'common.kanban.glisserDeplacer': 'Glissez une carte vers une autre colonne pour changer son statut.',
+    'common.kanban.deplacementRefuse': 'Ce changement de statut n\'est pas autorisé.',
+    'common.kanban.fermer': 'Fermer'
+  },
+
+  en: {
+    'common.statut.aPlanifier': 'To be planned',
+    'common.statut.enCours': 'In progress',
+    'common.statut.enPause': 'On hold',
+    'common.statut.terminee': 'Completed',
+    'common.statut.annulee': 'Cancelled',
+
+    'common.priorite.basse': 'Low',
+    'common.priorite.moyenne': 'Medium',
+    'common.priorite.haute': 'High',
+    'common.priorite.critique': 'Critical',
+
+    'common.statutEtape.aFaire': 'To do',
+    'common.statutEtape.enCours': 'In progress',
+    'common.statutEtape.terminee': 'Done',
+
+    'common.statutJalon.aAtteindre': 'To reach',
+    'common.statutJalon.atteint': 'Reached',
+
+    'common.role.ADMIN': 'Administrator',
+    'common.role.RESPONSABLE': 'Manager',
+    'common.role.VISITEUR': 'Viewer',
+
+    'common.permission.INITIATIVE_CONSULTER': 'View initiatives',
+    'common.permission.INITIATIVE_CREER': 'Create an initiative',
+    'common.permission.INITIATIVE_MODIFIER': 'Edit an initiative',
+    'common.permission.INITIATIVE_ARCHIVER': 'Archive an initiative',
+    'common.permission.RESPONSABLE_AFFECTER': 'Assign a manager to an initiative',
+    'common.permission.AVANCEMENT_MODIFIER': 'Update progress',
+    'common.permission.ETAPE_GERER': "Manage an initiative's steps",
+    'common.permission.JALON_GERER': "Manage an initiative's milestones",
+    'common.permission.DASHBOARD_CONSULTER': 'View the dashboard and KPIs',
+    'common.permission.FILTRE_UTILISER': 'Use search and filters',
+    'common.permission.UTILISATEUR_GERER': 'Manage users',
+    'common.permission.ROLE_GERER': 'Manage roles',
+    'common.permission.PERMISSION_GERER': 'Manage permissions',
+    'common.permission.DEMANDE_SOUMETTRE': 'Submit an initiative request',
+    'common.permission.DEMANDE_EVALUER': 'Evaluate, accept or reject a request',
+    'common.permission.BUDGET_CONSULTER': 'View budgets and variances',
+
+    'common.chargement': 'Loading…',
+    'common.nonAffecte': 'Unassigned',
+    'common.nonRenseigne': 'Not specified',
+    'common.aucuneDonnee': 'No data.',
+    'common.erreurInattendue': 'Unexpected error.',
+    'common.langue.changer': 'Change language',
+    'common.langue.liste': 'Languages',
+    'common.langue.courante': 'Language: {langue}',
+
+    'common.kanban.aucunResultat': 'No initiative matches the criteria.',
+    'common.kanban.enRetard': 'Potentially late',
+    'common.kanban.ouvert': 'Open: {description}',
+    'common.kanban.voirFiche': 'View details',
+    'common.kanban.glisserDeplacer': 'Drag a card to another column to change its status.',
+    'common.kanban.deplacementRefuse': 'This status change is not allowed.',
+    'common.kanban.fermer': 'Close'
+  },
+
+  ar: {
+    'common.statut.aPlanifier': 'قيد التخطيط',
+    'common.statut.enCours': 'قيد التنفيذ',
+    'common.statut.enPause': 'متوقفة',
+    'common.statut.terminee': 'مكتملة',
+    'common.statut.annulee': 'ملغاة',
+
+    'common.priorite.basse': 'منخفضة',
+    'common.priorite.moyenne': 'متوسطة',
+    'common.priorite.haute': 'عالية',
+    'common.priorite.critique': 'حرجة',
+
+    'common.statutEtape.aFaire': 'للتنفيذ',
+    'common.statutEtape.enCours': 'قيد التنفيذ',
+    'common.statutEtape.terminee': 'مكتملة',
+
+    'common.statutJalon.aAtteindre': 'مستهدف',
+    'common.statutJalon.atteint': 'تم تحقيقه',
+
+    'common.role.ADMIN': 'مدير',
+    'common.role.RESPONSABLE': 'مسؤول',
+    'common.role.VISITEUR': 'زائر',
+
+    'common.permission.INITIATIVE_CONSULTER': 'عرض المبادرات',
+    'common.permission.INITIATIVE_CREER': 'إنشاء مبادرة',
+    'common.permission.INITIATIVE_MODIFIER': 'تعديل مبادرة',
+    'common.permission.INITIATIVE_ARCHIVER': 'أرشفة مبادرة',
+    'common.permission.RESPONSABLE_AFFECTER': 'تعيين مسؤول للمبادرة',
+    'common.permission.AVANCEMENT_MODIFIER': 'تحديث نسبة الإنجاز',
+    'common.permission.ETAPE_GERER': 'إدارة مراحل المبادرة',
+    'common.permission.JALON_GERER': 'إدارة معالم المبادرة',
+    'common.permission.DASHBOARD_CONSULTER': 'عرض لوحة المعلومات ومؤشرات الأداء',
+    'common.permission.FILTRE_UTILISER': 'استخدام البحث والتصفية',
+    'common.permission.UTILISATEUR_GERER': 'إدارة المستخدمين',
+    'common.permission.ROLE_GERER': 'إدارة الأدوار',
+    'common.permission.PERMISSION_GERER': 'إدارة الأذونات',
+    'common.permission.DEMANDE_SOUMETTRE': 'تقديم طلب مبادرة',
+    'common.permission.DEMANDE_EVALUER': 'تقييم الطلب أو قبوله أو رفضه',
+    'common.permission.BUDGET_CONSULTER': 'عرض الميزانيات والفجوات',
+
+    'common.chargement': 'جارٍ التحميل…',
+    'common.nonAffecte': 'غير معيّن',
+    'common.nonRenseigne': 'غير محدد',
+    'common.aucuneDonnee': 'لا توجد بيانات.',
+    'common.erreurInattendue': 'خطأ غير متوقع.',
+    'common.langue.changer': 'تغيير اللغة',
+    'common.langue.liste': 'اللغات',
+    'common.langue.courante': 'اللغة: {langue}',
+
+    'common.kanban.aucunResultat': 'لا توجد مبادرة مطابقة للمعايير.',
+    'common.kanban.enRetard': 'متأخرة محتملة',
+    'common.kanban.ouvert': 'مفتوحة: {description}',
+    'common.kanban.voirFiche': 'عرض البطاقة',
+    'common.kanban.glisserDeplacer': 'اسحب بطاقة إلى عمود آخر لتغيير حالتها.',
+    'common.kanban.deplacementRefuse': 'تغيير الحالة هذا غير مسموح به.',
+    'common.kanban.fermer': 'إغلاق'
+  },
+
+  es: {
+    'common.statut.aPlanifier': 'Por planificar',
+    'common.statut.enCours': 'En curso',
+    'common.statut.enPause': 'En pausa',
+    'common.statut.terminee': 'Finalizada',
+    'common.statut.annulee': 'Cancelada',
+
+    'common.priorite.basse': 'Baja',
+    'common.priorite.moyenne': 'Media',
+    'common.priorite.haute': 'Alta',
+    'common.priorite.critique': 'Crítica',
+
+    'common.statutEtape.aFaire': 'Por hacer',
+    'common.statutEtape.enCours': 'En curso',
+    'common.statutEtape.terminee': 'Finalizada',
+
+    'common.statutJalon.aAtteindre': 'Por alcanzar',
+    'common.statutJalon.atteint': 'Alcanzado',
+
+    'common.role.ADMIN': 'Administrador',
+    'common.role.RESPONSABLE': 'Responsable',
+    'common.role.VISITEUR': 'Visitante',
+
+    'common.permission.INITIATIVE_CONSULTER': 'Consultar las iniciativas',
+    'common.permission.INITIATIVE_CREER': 'Crear una iniciativa',
+    'common.permission.INITIATIVE_MODIFIER': 'Modificar una iniciativa',
+    'common.permission.INITIATIVE_ARCHIVER': 'Archivar una iniciativa',
+    'common.permission.RESPONSABLE_AFFECTER': 'Asignar un responsable a una iniciativa',
+    'common.permission.AVANCEMENT_MODIFIER': 'Actualizar el avance',
+    'common.permission.ETAPE_GERER': 'Gestionar las etapas de una iniciativa',
+    'common.permission.JALON_GERER': 'Gestionar los hitos de una iniciativa',
+    'common.permission.DASHBOARD_CONSULTER': 'Consultar el panel y los KPI',
+    'common.permission.FILTRE_UTILISER': 'Usar la búsqueda y los filtros',
+    'common.permission.UTILISATEUR_GERER': 'Gestionar los usuarios',
+    'common.permission.ROLE_GERER': 'Gestionar los roles',
+    'common.permission.PERMISSION_GERER': 'Gestionar los permisos',
+    'common.permission.DEMANDE_SOUMETTRE': 'Enviar una solicitud de iniciativa',
+    'common.permission.DEMANDE_EVALUER': 'Evaluar, aceptar o rechazar una solicitud',
+    'common.permission.BUDGET_CONSULTER': 'Ver presupuestos y desviaciones',
+
+    'common.chargement': 'Cargando…',
+    'common.nonAffecte': 'Sin asignar',
+    'common.nonRenseigne': 'No indicado',
+    'common.aucuneDonnee': 'Sin datos.',
+    'common.erreurInattendue': 'Error inesperado.',
+    'common.langue.changer': 'Cambiar idioma',
+    'common.langue.liste': 'Idiomas',
+    'common.langue.courante': 'Idioma: {langue}',
+
+    'common.kanban.aucunResultat': 'Ninguna iniciativa coincide con los criterios.',
+    'common.kanban.enRetard': 'Posiblemente atrasada',
+    'common.kanban.ouvert': 'Abierta: {description}',
+    'common.kanban.voirFiche': 'Ver la ficha',
+    'common.kanban.glisserDeplacer': 'Arrastre una tarjeta a otra columna para cambiar su estado.',
+    'common.kanban.deplacementRefuse': 'Este cambio de estado no está permitido.',
+    'common.kanban.fermer': 'Cerrar'
+  }
+};

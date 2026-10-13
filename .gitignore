@@ -1,0 +1,31 @@
+# --- Environnements / outils locaux ---
+tools/
+.mvn/
+mvnw
+mvnw.cmd
+
+# --- Base de données locale (données brutes) ---
+.mysql/
+
+# --- Secrets locaux (voir .env.example, versionné) ---
+.env
+
+# --- Backend (Java / Maven) ---
+backend/target/
+*.class
+*.jar
+!maven-wrapper.jar
+
+# --- Frontend (Node / React) ---
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.env.local
+npm-debug.log*
+
+# --- IDE / OS ---
+.idea/
+*.iml
+.vscode/settings.json
+.DS_Store
+Thumbs.db

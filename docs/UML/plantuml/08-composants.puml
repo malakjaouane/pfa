@@ -1,0 +1,36 @@
+@startuml 08-composants
+' Architecture logique (composants)
+skinparam componentStyle uml2
+skinparam packageStyle rectangle
+
+package "Poste client" {
+  [Navigateur\n(SPA React 18 / Vite)] as NAV
+  package "Frontend" {
+    [Pages & composants\nReact Router, Axios, Chart.js] as PAGES
+    [AuthContext\n(jeton JWT, permissions)] as CTX
+  }
+}
+
+package "Serveur d'application (Spring Boot 3.5)" {
+  [JwtAuthenticationFilter\n+ SecurityConfig] as SEC
+  [Controleurs REST\n/api/**] as CTRL
+  [Services metier\nInitiativeService, DashboardService, ...] as SVC
+  [Mappers & DTO] as MAP
+  [Repositories JPA\n+ Specifications] as REPO
+}
+
+package "Persistance" {
+  database "MySQL 8.4\nportefeuille_initiatives" as MYSQL
+  artifact "database/schema.sql\ndatabase/data.sql" as SCRIPTS
+}
+
+NAV --> PAGES
+PAGES --> CTX
+PAGES --> CTRL : HTTPS / JSON
+CTRL --> SEC
+CTRL --> SVC
+SVC --> MAP
+SVC --> REPO
+REPO --> MYSQL : JDBC
+SCRIPTS --> MYSQL : spring.sql.init
+@enduml
